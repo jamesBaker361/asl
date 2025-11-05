@@ -1,4 +1,4 @@
-diffusers
+git+https://github.com/lawrence-cj/diffusers.git
 torch
 transformers
 wandb
