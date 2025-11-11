@@ -12,7 +12,7 @@ pipe.text_encoder.to(torch.bfloat16)
 pipe.to("cuda")
 model_score = 30
 
-prompt = "Evening, backlight, side lighting, soft light, high contrast, mid-shot, centered composition, clean solo shot, warm color. A young Caucasian man stands in a forest, golden light glimmers on his hair as sunlight filters through the leaves. He wears a light shirt, wind gently blowing his hair and collar, light dances across his face with his movements. The background is blurred, with dappled light and soft tree shadows in the distance. The camera focuses on his lifted gaze, clear and emotional."
+prompt = "Evening, backlight, side lighting, soft light, high contrast, mid-shot, centered composition, clean solo shot. A tall man walks across a city"
 negative_prompt = "A chaotic sequence with misshapen, deformed limbs in heavy motion blur, sudden disappearance, jump cuts, jerky movements, rapid shot changes, frames out of sync, inconsistent character shapes, temporal artifacts, jitter, and ghosting effects, creating a disorienting visual experience."
 motion_prompt = f" motion score: {model_score}."
 prompt = prompt + motion_prompt
@@ -20,12 +20,12 @@ prompt = prompt + motion_prompt
 video = pipe(
     prompt=prompt,
     negative_prompt=negative_prompt,
-    height=480,
-    width=832,
+    height=256,
+    width=256,
     frames=81,
     guidance_scale=6,
-    num_inference_steps=50,
+    num_inference_steps=100,
     generator=torch.Generator(device="cuda").manual_seed(42),
 ).frames[0]
 
-export_to_video(video, "sana_video.mp4", fps=16)
+export_to_video(video, "sana_video2.mp4", fps=16)
