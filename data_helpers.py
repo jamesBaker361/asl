@@ -42,7 +42,7 @@ class VideoData(Dataset):
         for cv2_image_list in dataset["video_cv2"]:
             tensor_list=[]
             for cv2_image in cv2_image_list:
-                cv2_image=np.asarray(cv2_image)
+                cv2_image=np.asarray(cv2_image/255).astype(np.float32)
                 print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
                 tens=convert(cv2_image)
                 tens=tens.resize(aspect_ratio)
