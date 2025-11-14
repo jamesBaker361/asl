@@ -1,4 +1,5 @@
 from yt_dlp import YoutubeDL
+import yt_dlp
 import os
 import re
 import sys
@@ -7,6 +8,7 @@ from urllib.parse import urlparse, parse_qs
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
 import requests
+import json
 
 
 @lru_cache(maxsize=128)
@@ -486,6 +488,8 @@ if __name__ == "__main__":
                 urls, max_workers=max_workers, audio_only=audio_only)
             
 if __name__=="__main__":
+    API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
+    #downloads locally to then push to chip
     for youtube_id in []:
         base_dir="videos"
         output_path=os.path.join(base_dir,youtube_id)
@@ -501,3 +505,8 @@ if __name__=="__main__":
 
         # Get description
         desc = data["items"][0]["snippet"]["description"]
+        j={
+            "fps":fps,
+            "desc":desc
+        }
+        json.dumps(j,open(os.path.join(output_path,"info.json"),"w"))

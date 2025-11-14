@@ -1,3 +1,5 @@
+#wlasl data from directory -> hf dataser
+
 import PIL
 from datasets import load_dataset, Dataset
 import json
@@ -11,6 +13,8 @@ output_dict={
     "label":[],
     "video_cv2":[]
 }
+
+
 
 with open(json_path) as file:
     j=json.load(file)
