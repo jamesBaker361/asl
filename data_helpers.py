@@ -57,3 +57,5 @@ class VideoData(Dataset):
         
 if __name__=="__main__":
     data=VideoData("0.5","jlbaker361/wlasl")
+    for d in data:
+        print(d["video"].size())
