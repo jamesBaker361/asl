@@ -29,6 +29,7 @@ module load slurm/chip-gpu/23.11.4
 module load   Autoconf/2.72-GCCcore-13.3.0 
 module load  CMake/3.29.3-GCCcore-13.3.0
 module load  CUDA/12.8.0  
+module load FFmpeg/7.0.2-GCCcore-13.3.0
 gcc --version
 source myenv/bin/activate
 export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:64
