@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Tuple
 from urllib.parse import urlparse, parse_qs
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
+import requests
 
 
 @lru_cache(maxsize=128)
@@ -483,3 +484,20 @@ if __name__ == "__main__":
         else:
             download_youtube_content(
                 urls, max_workers=max_workers, audio_only=audio_only)
+            
+if __name__=="__main__":
+    for youtube_id in []:
+        base_dir="videos"
+        output_path=os.path.join(base_dir,youtube_id)
+        os.makedirs(output_path,exist_ok=True)
+        url=f"https://www.youtube.com/watch?v={youtube_id}"
+        download_single_video(url,output_path)
+        ydl_opts = {'quiet': True, 'skip_download': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            fps = info.get("fps")
+        url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={youtube_id}&key={API_KEY}"
+        data = requests.get(url).json()
+
+        # Get description
+        desc = data["items"][0]["snippet"]["description"]
