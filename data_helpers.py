@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 import torch.nn.functional as F
 
-def convert(image_cv):
+def convert(image_cv,aspect_ratio):
     # 2. Convert BGR to RGB (PyTorch models typically expect RGB)
     image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
 
@@ -27,6 +27,10 @@ def convert(image_cv):
     # This transform converts a PIL Image or NumPy array to a PyTorch Tensor.
     # It also scales the pixel values from [0, 255] to [0.0, 1.0].
     transform = transforms.ToTensor()
+    trans=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize(aspect_ratio)
+    ])
 
     # 4. Apply the transform to convert the NumPy array to a PyTorch Tensor
     tensor_image = transform(image_rgb)
@@ -38,15 +42,14 @@ class VideoData(Dataset):
         dataset=load_dataset(src_data,split="train")
         self.text_list=dataset["label"]
         aspect_ratio=ASPECT_RATIO_480_BIN[ratio]
+        aspect_ratio=[int(a) for a in aspect_ratio]
         self.tensor_video_list=[]
         for cv2_image_list in dataset["video_cv2"]:
             tensor_list=[]
             for cv2_image in cv2_image_list:
                 cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
-                print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
-                tens=convert(cv2_image)
-                trans=transforms.Resize(aspect_ratio)
-                tens=tens.resize(aspect_ratio)
+                #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
+                tens=convert(cv2_image,aspect_ratio)
                 tensor_list.append(tens)
             self.tensor_video_list.append(torch.stack(tensor_list))
             
