@@ -61,7 +61,7 @@ class VideoData(Dataset):
     def __getitem__(self, index):
         text=self.text_list[index]
         token=self.tokenizer(
-            text, max_length=self.tokenizer.model_max_length, padding="max_length", truncation=True, return_tensors="pt"
+            text, max_length=300, padding="max_length", truncation=True, return_tensors="pt"
         )
         return {
             "video":self.tensor_video_list[index],
