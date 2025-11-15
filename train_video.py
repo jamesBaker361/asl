@@ -28,6 +28,7 @@ from data_helpers import VideoData
 from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler
 from peft import LoraConfig
 from peft.utils import get_peft_model_state_dict
+from fvd import compute_fvd
 
 
 from transformers import AutoProcessor, CLIPModel
@@ -50,6 +51,7 @@ parser.add_argument("--save_dir",type=str,default="weights")
 parser.add_argument("--batch_size",type=int,default=1)
 parser.add_argument("--load_hf",action="store_true")
 parser.add_argument("--rank",type=int,default=4)
+parser.add_argument("--num_inference_steps",type=int,default=50)
 
 
 
@@ -96,17 +98,18 @@ def main(args):
     tokenizer=pipeline.tokenizer
 
     dataset=VideoData("0.5","jlbaker361/wlasl",tokenizer)
-    test_size=args.batch_size
-    train_size=int(len(dataset)-test_size)
+    test_size=int(len(dataset)//10)
+    train_size=int(len(dataset)-2*test_size)
 
     
     # Set seed for reproducibility
     generator = torch.Generator().manual_seed(42)
 
     # Split the dataset
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size], generator=generator)
+    train_dataset, test_dataset,val_dataset = random_split(dataset, [train_size, test_size,test_size], generator=generator)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True)
+    val_loader=DataLoader(val_dataset,batch_size=args.batch_size, shuffle=True)
 
     save_subdir=os.path.join(args.save_dir,args.name)
     os.makedirs(save_subdir,exist_ok=True)
@@ -149,8 +152,35 @@ def main(args):
             start_epoch=data["start_epoch"]+1
     except Exception as e:
         accelerator.print(e)
-
-
+        
+    def inference(label:str,dataloader:DataLoader):
+        fake=[]
+        real=[]
+        for b,batch in enumerate(dataloader):
+            real.append(batch["video"])
+            text=batch["text"]
+            
+            video = pipeline(
+                prompt=text,
+                negative_prompt="",
+                height=448,
+                width=896,
+                frames=75,
+                guidance_scale=6,
+                num_inference_steps=args.num_inference_steps,
+                generator=torch.Generator(device="cuda").manual_seed(42),
+                output_type="pt"
+            )[0]
+            if b==0:
+                accelerator.print("video size ",video.size())
+            fake.append(video)
+        fake= torch.cat(fake)
+        real=torch.cat(real)
+        
+        fvd_score = compute_fvd(real, fake, 4, device, batch_size=4)
+        
+        accelerator.log({f"{label}_fvd":fvd_score})
+        
     def save(e:int,state_dict:dict):
         #state_dict=???
         print("state dict len",len(state_dict))
