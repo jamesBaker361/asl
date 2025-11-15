@@ -1,12 +1,9 @@
-#downloads from youtube -> chip -> hf
+# chip -> hf
 
-from yt_download import download_single_video
 import os
-import yt_dlp
 import requests
 import re
 import glob
-import cv2
 import json
 
 API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
