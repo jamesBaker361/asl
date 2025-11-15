@@ -7,14 +7,24 @@ import requests
 import re
 import glob
 import cv2
+import json
 
 API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
 
 base_dir="videos"
 
+def get_video_ids(b_dir:str=base_dir):
+    youtube_ids=[s for s in os.listdir(b_dir) if os.path.isdir(s)]
+    
 
 
-def split(youtube_id:str):
+def split(youtube_id:str,):
+    output_path=os.path.join(base_dir,youtube_id)
+    with open(os.path.join(output_path,"info.json")) as file:
+        json_object=json.load(file)
+    desc=json_object["desc"]
+    fps=json_object["fps"]
+    '''
     output_path=os.path.join(base_dir,youtube_id)
     os.makedirs(output_path,exist_ok=True)
     url=f"https://www.youtube.com/watch?v={youtube_id}"
@@ -27,7 +37,7 @@ def split(youtube_id:str):
     data = requests.get(url).json()
 
     # Get description
-    desc = data["items"][0]["snippet"]["description"]
+    desc = data["items"][0]["snippet"]["description"]'''
 
     # Regex pattern to capture timestamp and following text
     pattern = r"(\d{1,2}:\d{2}(?::\d{2})?)\s*[-–:]?\s*(.*)"
