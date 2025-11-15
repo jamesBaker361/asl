@@ -40,6 +40,7 @@ def convert(image_cv,aspect_ratio):
 class VideoData(Dataset):
     def __init__(self,ratio:Union[str,float],src_data:str,tokenizer:CLIPTokenizer):
         super().__init__()
+        self.tokenizer=tokenizer
         dataset=load_dataset(src_data,split="train")
         self.text_list=dataset["label"]
         aspect_ratio=ASPECT_RATIO_480_BIN[ratio]
