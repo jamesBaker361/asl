@@ -13,6 +13,7 @@ from diffusers.pipelines.sana.pipeline_sana_video import ASPECT_RATIO_480_BIN, A
 from diffusers.video_processor import VideoProcessor
 from diffusers import AutoencoderKL
 from datasets import load_dataset
+from transformers import CLIPTokenizer
 from typing import Union
 import cv2
 
@@ -37,7 +38,7 @@ def convert(image_cv,aspect_ratio):
     return tensor_image
 
 class VideoData(Dataset):
-    def __init__(self,ratio:Union[str,float],src_data):
+    def __init__(self,ratio:Union[str,float],src_data:str,tokenizer:CLIPTokenizer):
         super().__init__()
         dataset=load_dataset(src_data,split="train")
         self.text_list=dataset["label"]
@@ -57,9 +58,14 @@ class VideoData(Dataset):
         return len(self.tensor_video_list)
     
     def __getitem__(self, index):
+        text=self.text_list[index]
+        token=self.tokenizer(
+            text, max_length=self.tokenizer.model_max_length, padding="max_length", truncation=True, return_tensors="pt"
+        )
         return {
             "video":self.tensor_video_list[index],
-            "text":self.text_list[index]
+            "text":text,
+            "token":token
         }
         
 if __name__=="__main__":
