@@ -64,7 +64,7 @@ echo "Allocated GPUs:"
 nvidia-smi
 echo "version"
 nvcc --version
-srun @
+srun $@
 echo "Running on: $(hostname)"
 echo "Allocated GPUs:"
 nvidia-smi
