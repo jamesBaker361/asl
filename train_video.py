@@ -41,13 +41,13 @@ from huggingface_hub import create_repo,HfApi
 parser=argparse.ArgumentParser()
 parser.add_argument("--mixed_precision",type=str,default="fp16")
 parser.add_argument("--project_name",type=str,default="person")
-parser.add_argument("--gradient_accumulation_steps",type=int,default=4)
+parser.add_argument("--gradient_accumulation_steps",type=int,default=2)
 parser.add_argument("--name",type=str,default="jlbaker361/model",help="name on hf")
 parser.add_argument("--lr",type=float,default=0.0001)
 parser.add_argument("--epochs",type=int,default=100)
 parser.add_argument("--limit",type=int,default=-1)
 parser.add_argument("--save_dir",type=str,default="weights")
-parser.add_argument("--batch_size",type=int,default=4)
+parser.add_argument("--batch_size",type=int,default=1)
 parser.add_argument("--load_hf",action="store_true")
 
 
