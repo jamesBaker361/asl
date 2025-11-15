@@ -5,6 +5,7 @@ import requests
 import re
 import glob
 import json
+import cv2
 
 API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
 
@@ -80,4 +81,4 @@ def split(youtube_id:str,):
     print(f"finished video {video_id}")'''
     
 if __name__=="__main__":
-    split("dUFIu42tca4")
+    get_video_ids()
