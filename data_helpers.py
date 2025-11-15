@@ -45,6 +45,7 @@ class VideoData(Dataset):
                 cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
                 print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
                 tens=convert(cv2_image)
+                trans=transforms.Resize(aspect_ratio)
                 tens=tens.resize(aspect_ratio)
                 tensor_list.append(tens)
             self.tensor_video_list.append(torch.stack(tensor_list))
