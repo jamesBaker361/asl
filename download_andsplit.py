@@ -15,6 +15,8 @@ base_dir="videos"
 
 def get_video_ids(b_dir:str=base_dir):
     youtube_ids=[s for s in os.listdir(b_dir) if os.path.isdir(s)]
+    for y in youtube_ids:
+        split(y)
     
 
 
@@ -63,7 +65,6 @@ def split(youtube_id:str,):
 
     success =True
     count=0
-    print("?")
     while success:
         success, image = vid.read() # Read frame
         if success: 
@@ -74,7 +75,7 @@ def split(youtube_id:str,):
             #cv2.imwrite(f"frame{count}crop.jpg", cropped_image) # Save frame
             frame_list.append(image)
             count += 1
-    print("count",count)
+    print("count",youtube_id,count)
 '''    frame_list=frame_list[frame_start:frame_end]
     output_dict["label"].append(label)
     output_dict["video_cv2"].append(frame_list)
