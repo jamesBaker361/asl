@@ -228,6 +228,7 @@ def main(args):
             f"avg_loss":np.mean(loss_buffer),
             "train_loss":train_loss
         })
+        accelerator.print(f"epoch {e} elapsed {end-start}")
 
 
 if __name__=='__main__':
