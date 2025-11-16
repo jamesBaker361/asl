@@ -211,9 +211,9 @@ def main(args):
             
             with accelerator.accumulate(params):
                 video=batch["video"]
-                text=video["text"]
-                tokenized_text=video["token"]['input_ids']
-                encoder_attention_mask=video["token"]["attention_mask"]
+                text=batch["text"]
+                tokenized_text=batch["token"]['input_ids']
+                encoder_attention_mask=batch["token"]["attention_mask"]
                 
                 latents=vae.encode(video).latent_dist.sample()
                 noise = torch.randn_like(latents)
