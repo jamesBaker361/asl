@@ -6,6 +6,7 @@ import re
 import glob
 import json
 import cv2
+from datasets import Dataset
 
 API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
 
@@ -13,12 +14,25 @@ base_dir="videos"
 
 def get_video_ids(b_dir:str=base_dir):
     youtube_ids=[s for s in os.listdir(b_dir) if os.path.isdir(os.path.join(b_dir,s))]
+    output_dict={
+        "video_cv2":[],
+        "label":[]
+    }
     for y in youtube_ids:
-        split(y)
+        label_list,video_cv2_list=split(y)
+        
+        output_dict["video_cv2"]+=video_cv2_list
+        output_dict["label"]+=label_list
+        
+        Dataset.from_dict(output_dict).push_to_hub("jlbaker361/youtube-asl")
+        
+        
     
 
 
 def split(youtube_id:str,):
+    label_list=[]
+    video_cv2_list=[]
     output_path=os.path.join(base_dir,youtube_id)
     with open(os.path.join(output_path,"info.json")) as file:
         json_object=json.load(file)
@@ -74,11 +88,13 @@ def split(youtube_id:str,):
             frame_list.append(image)
             count += 1
     print("count",youtube_id,count)
-'''    frame_list=frame_list[frame_start:frame_end]
-    output_dict["label"].append(label)
-    output_dict["video_cv2"].append(frame_list)
+    for frame_start,frame_end,label in zip(frame_start_list,frame_end_list,text_list):
+        _frame_list=frame_list[frame_start:frame_end]
+        label_list.append(label)
+        video_cv2_list.append(_frame_list)
     vid.release()
-    print(f"finished video {video_id}")'''
+    print(f"finished video {youtube_id}")
+    return label_list,video_cv2_list
     
 if __name__=="__main__":
     get_video_ids()
