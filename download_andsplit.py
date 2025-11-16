@@ -89,12 +89,13 @@ def split(youtube_id:str):
             #cv2.imwrite(f"frame{count}crop.jpg", cropped_image) # Save frame
             frame_list.append(image)
             count += 1
+    vid.release()
     print("count",youtube_id,count)
     for frame_start,frame_end,label in zip(frame_start_list,frame_end_list,text_list):
         _frame_list=frame_list[frame_start:frame_end]
         label_list.append(label)
         video_cv2_list.append(_frame_list)
-    vid.release()
+    
     print(f"finished video {youtube_id}")
     return label_list,video_cv2_list
     
