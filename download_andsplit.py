@@ -30,7 +30,8 @@ def get_video_ids(b_dir:str=base_dir):
     
 
 
-def split(youtube_id:str,):
+def split(youtube_id:str):
+    print(f"splittign {youtube_id}")
     label_list=[]
     video_cv2_list=[]
     output_path=os.path.join(base_dir,youtube_id)
