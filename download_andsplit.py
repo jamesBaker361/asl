@@ -13,6 +13,7 @@ API_KEY = "AIzaSyBPmYucwLc1zkMqaqfUV1eqGm21PgINzR4"
 base_dir="videos"
 
 def get_video_ids(b_dir:str=base_dir):
+    print("video ids")
     youtube_ids=[s for s in os.listdir(b_dir) if os.path.isdir(os.path.join(b_dir,s))]
     output_dict={
         "video_cv2":[],
