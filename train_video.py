@@ -207,8 +207,6 @@ def main(args):
         for b,batch in enumerate(train_loader):
             if b==args.limit:
                 break
-            if b%args.skip_num!=0:
-                continue
 
             
             with accelerator.accumulate(params):
@@ -244,7 +242,7 @@ def main(args):
                 
                 loss_buffer.append(loss.cpu().detach().numpy())
                 
-                avg_loss = accelerator.gather(loss.repeat(args.train_batch_size)).mean()
+                avg_loss = accelerator.gather(loss.repeat(args.batch_size)).mean()
                 train_loss += avg_loss.item() / args.gradient_accumulation_steps
                 
                 accelerator.backward(loss)
