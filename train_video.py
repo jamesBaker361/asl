@@ -212,7 +212,7 @@ def main(args):
 
             
             with accelerator.accumulate(params):
-                video=batch["video"] #.to(vae.dtype)
+                video=batch["video"].permute(0, 2, 1, 3, 4) #.to(vae.dtype)
                 text=batch["text"]
                 tokenized_text=batch["token"]['input_ids']
                 encoder_attention_mask=batch["token"]["attention_mask"]
