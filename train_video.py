@@ -214,10 +214,10 @@ def main(args):
 
             
             with accelerator.accumulate(params):
-                video=batch["video"].permute(0, 2, 1, 3, 4).contiguous() #.to(vae.dtype)
+                video=batch["video"].permute(0, 2, 1, 3, 4).contiguous().to(device)
                 text=batch["text"]
-                tokenized_text=batch["token"]['input_ids']
-                encoder_attention_mask=batch["token"]["attention_mask"]
+                tokenized_text=batch["token"]['input_ids'].to(device)
+                encoder_attention_mask=batch["token"]["attention_mask"].to(device)
                 
                 if e==start_epoch and b==0:
                     accelerator.print("video ",video.size(),video.dtype,video.device)
