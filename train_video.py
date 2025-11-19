@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 import json
 
 import torch
+print('torch version',torch.__version__)               # PyTorch version
+print('torch version cuda',torch.version.cuda) 
 import accelerate
 from accelerate import Accelerator
 from huggingface_hub.errors import HfHubHTTPError
@@ -216,6 +218,9 @@ def main(args):
                 text=batch["text"]
                 tokenized_text=batch["token"]['input_ids']
                 encoder_attention_mask=batch["token"]["attention_mask"]
+                
+                if e==start_epoch and b==0:
+                    accelerator.print("video ",video.size(),video.dtype,video.device)
                 
                 latents=vae.encode(video).latent_dist.sample()
                 noise = torch.randn_like(latents)
