@@ -212,7 +212,8 @@ def main(args):
         for b,batch in enumerate(train_loader):
             if b==args.limit:
                 break
-
+            
+            oom_count=0
             
             with accelerator.accumulate(params):
                 video=batch["video"].permute(0, 2, 1, 3, 4).contiguous().to(device)
@@ -239,13 +240,17 @@ def main(args):
                 noisy_latents = scheduler.add_noise(latents, noise, timesteps)
                 
                 with accelerator.autocast():
-                    model_pred = transformer(
-                        noisy_latents,
-                        encoder_hidden_states=encoder_hidden_states,
-                        encoder_attention_mask=encoder_attention_mask,
-                        timestep=timesteps,
-                        return_dict=False,
-                    )[0]
+                    try:
+                        model_pred = transformer(
+                            noisy_latents,
+                            encoder_hidden_states=encoder_hidden_states,
+                            encoder_attention_mask=encoder_attention_mask,
+                            timestep=timesteps,
+                            return_dict=False,
+                        )[0]
+                    except torch.OutOfMemoryError:
+                        accelerator.print("error for ",text, noisy_latents.size())
+                        oom_count+=1
                     
                     loss=F.mse_loss(model_pred.float(),noise.float())
                 
@@ -268,7 +273,7 @@ def main(args):
             f"avg_loss":np.mean(loss_buffer),
             "train_loss":train_loss
         })
-        accelerator.print(f"epoch {e} elapsed {end-start}")
+        accelerator.print(f"epoch {e} elapsed {end-start}. {oom_count}/{b} skipped")
 
 
 if __name__=='__main__':
