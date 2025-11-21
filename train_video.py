@@ -259,6 +259,9 @@ def main(args):
                     accelerator.clip_grad_norm_(params, 1.0)
                 optimizer.step()
                 optimizer.zero_grad()
+                
+                torch.cuda.empty_cache()
+                accelerator.free_memory()
         
         end=time.time()
         accelerator.log({
