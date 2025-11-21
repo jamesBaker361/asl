@@ -239,8 +239,9 @@ def main(args):
                 
                 noisy_latents = scheduler.add_noise(latents, noise, timesteps)
                 
-                with accelerator.autocast():
-                    try:
+                try:
+                    with accelerator.autocast():
+                        
                         model_pred = transformer(
                             noisy_latents,
                             encoder_hidden_states=encoder_hidden_states,
@@ -248,21 +249,23 @@ def main(args):
                             timestep=timesteps,
                             return_dict=False,
                         )[0]
-                    except torch.OutOfMemoryError:
-                        accelerator.print("error for ",text, noisy_latents.size())
-                        oom_count+=1
+                        
+                        
+                        loss=F.mse_loss(model_pred.float(),noise.float())
                     
-                    loss=F.mse_loss(model_pred.float(),noise.float())
-                
-                loss_buffer.append(loss.cpu().detach().numpy())
-                
-                avg_loss = accelerator.gather(loss.repeat(args.batch_size)).mean()
-                train_loss += avg_loss.item() / args.gradient_accumulation_steps
-                
-                accelerator.backward(loss)
-                if accelerator.sync_gradients:
-                    accelerator.clip_grad_norm_(params, 1.0)
-                optimizer.step()
+                    loss_buffer.append(loss.cpu().detach().numpy())
+                    
+                    avg_loss = accelerator.gather(loss.repeat(args.batch_size)).mean()
+                    train_loss += avg_loss.item() / args.gradient_accumulation_steps
+                    
+                    accelerator.backward(loss)
+                    if accelerator.sync_gradients:
+                        accelerator.clip_grad_norm_(params, 1.0)
+                    optimizer.step()
+                    accelerator.print("yay it worked ",text, noisy_latents.size())
+                except torch.OutOfMemoryError:
+                    accelerator.print("error for ",text, noisy_latents.size())
+                    oom_count+=1
                 optimizer.zero_grad()
                 
                 torch.cuda.empty_cache()
