@@ -251,7 +251,11 @@ def main(args):
                         )[0]
                         
                         
-                        loss=F.mse_loss(model_pred.float(),noise.float())
+                        try:
+                            loss=F.mse_loss(model_pred.float(),noise.float())
+                        except RuntimeError as err:
+                            accelerator.print(f"{text} model pred {model_pred.size()} noise {noise.size()}")
+                            raise(err)
                     
                     loss_buffer.append(loss.cpu().detach().numpy())
                     
