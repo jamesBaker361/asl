@@ -34,7 +34,7 @@ def convert(image_cv,aspect_ratio):
     ])
 
     # 4. Apply the transform to convert the NumPy array to a PyTorch Tensor
-    tensor_image = transform(image_rgb)
+    tensor_image = trans(image_rgb)
     return tensor_image
 
 class VideoData(Dataset):
