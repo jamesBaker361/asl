@@ -147,7 +147,7 @@ def main(args):
     
     optimizer=torch.optim.AdamW(params)
     
-    train_dataset,optimizer,transformer,vae,text_encoder,scheduler=accelerator.prepare(train_dataset,optimizer,transformer,vae,text_encoder,scheduler)
+    train_dataset,optimizer,scheduler=accelerator.prepare(train_dataset,optimizer,scheduler)
 
     start_epoch=1
     try:
