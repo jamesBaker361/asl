@@ -209,11 +209,12 @@ def main(args):
         start=time.time()
         loss_buffer=[]
         train_loss=0.0
+        oom_count=0
         for b,batch in enumerate(train_loader):
             if b==args.limit:
                 break
             
-            oom_count=0
+            
             
             with accelerator.accumulate(params):
                 video=batch["video"].permute(0, 2, 1, 3, 4).contiguous().to(device)
