@@ -130,7 +130,7 @@ def main(args):
     vae.requires_grad_(False)
     text_encoder.requires_grad_(False)
     
-    transformer=cpu_offload(transformer)
+    #transformer=cpu_offload(transformer)
     vae=cpu_offload(vae)
     text_encoder=cpu_offload(text_encoder)
     
@@ -147,7 +147,7 @@ def main(args):
     
     optimizer=torch.optim.AdamW(params)
     
-    train_dataset,optimizer,scheduler=accelerator.prepare(train_dataset,optimizer,scheduler)
+    train_dataset,optimizer,scheduler,transformer=accelerator.prepare(train_dataset,optimizer,scheduler,transformer)
 
     start_epoch=1
     try:
