@@ -10,7 +10,7 @@ import torch
 print('torch version',torch.__version__)               # PyTorch version
 print('torch version cuda',torch.version.cuda) 
 import accelerate
-from accelerate import Accelerator
+from accelerate import Accelerator,cpu_offload
 from huggingface_hub.errors import HfHubHTTPError
 from accelerate import PartialState
 from accelerate.utils import set_seed
@@ -129,6 +129,10 @@ def main(args):
     transformer.requires_grad_(False)
     vae.requires_grad_(False)
     text_encoder.requires_grad_(False)
+    
+    transformer=cpu_offload(transformer)
+    vae=cpu_offload(vae)
+    text_encoder=cpu_offload(text_encoder)
     
     trans_lora_config = LoraConfig(
         r=args.rank,
