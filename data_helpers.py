@@ -38,7 +38,7 @@ def convert(image_cv,aspect_ratio):
     return tensor_image
 
 class VideoData(Dataset):
-    def __init__(self,ratio:Union[str,float],src_data:str,tokenizer:CLIPTokenizer):
+    def __init__(self,ratio:Union[str,float],src_data:str,tokenizer:CLIPTokenizer,frames:int=4):
         super().__init__()
         self.tokenizer=tokenizer
         dataset=load_dataset(src_data,split="train")
@@ -50,9 +50,11 @@ class VideoData(Dataset):
             tensor_list=[]
             for cv2_image in cv2_image_list:
                 cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
+                for k in range(len(cv2_image)-4):
+                    segment=cv2_image[k:k+4]
                 #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
-                tens=convert(cv2_image,aspect_ratio)
-                tensor_list.append(tens)
+                    tens=convert(segment,aspect_ratio)
+                    tensor_list.append(tens)
             self.tensor_video_list.append(torch.stack(tensor_list))
             
     def __len__(self):
