@@ -42,20 +42,28 @@ class VideoData(Dataset):
         super().__init__()
         self.tokenizer=tokenizer
         dataset=load_dataset(src_data,split="train")
-        self.text_list=dataset["label"]
+        self.text_list=[]
         aspect_ratio=ASPECT_RATIO_480_BIN[ratio]
         aspect_ratio=[int(a) for a in aspect_ratio]
         self.tensor_video_list=[]
-        for cv2_image_list in dataset["video_cv2"]:
-            tensor_list=[]
-            for cv2_image in cv2_image_list:
-                cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
-                for k in range(len(cv2_image)-4):
+        self.episode_index=[]
+        self.episode_length=[]
+        for cv2_image_list,text in zip(dataset["video_cv2"],dataset["label"]):
+            for k in range(len(cv2_image_list)-4):
+                segment=cv2_image_list[k:k+4]
+                tensor_list=[]
+                for cv2_image in segment:
+                    cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
+                    
                     segment=cv2_image[k:k+4]
-                #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
+                    #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
                     tens=convert(segment,aspect_ratio)
                     tensor_list.append(tens)
-            self.tensor_video_list.append(torch.stack(tensor_list))
+                    
+                self.tensor_video_list.append(torch.stack(tensor_list))
+                self.text_list.append(text)
+                self.episode_index.append(k)
+                self.episode_length.append(len(cv2_image_list))
             
     def __len__(self):
         return len(self.tensor_video_list)
@@ -63,12 +71,16 @@ class VideoData(Dataset):
     def __getitem__(self, index):
         text=self.text_list[index]
         token=self.tokenizer(
-            text, max_length=300, padding="max_length", truncation=True, return_tensors="pt"
+            text, max_length=100, padding="max_length", truncation=True, return_tensors="pt"
         )
+        episode_index=self.episode_index[index]
+        episode_length=self.episode_length[index]
         return {
             "video":self.tensor_video_list[index],
             "text":text,
-            "token":token
+            "token":token,
+            "episode_index":episode_index,
+            "episode_length":episode_length
         }
         
 if __name__=="__main__":

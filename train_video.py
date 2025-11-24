@@ -54,6 +54,7 @@ parser.add_argument("--batch_size",type=int,default=1)
 parser.add_argument("--load_hf",action="store_true")
 parser.add_argument("--rank",type=int,default=4)
 parser.add_argument("--num_inference_steps",type=int,default=50)
+parser.add_argument("--frames",type=int,default=4)
 
 
 
@@ -101,7 +102,7 @@ def main(args):
     scheduler=pipeline.scheduler
     tokenizer=pipeline.tokenizer
 
-    dataset=VideoData("0.5","jlbaker361/wlasl",tokenizer)
+    dataset=VideoData("0.5","jlbaker361/wlasl",tokenizer,args.frames)
     test_size=int(len(dataset)//10)
     train_size=int(len(dataset)-2*test_size)
 
@@ -131,8 +132,8 @@ def main(args):
     text_encoder.requires_grad_(False)
     
     #transformer=cpu_offload(transformer)
-    vae=cpu_offload(vae)
-    text_encoder=cpu_offload(text_encoder)
+    #vae=cpu_offload(vae)
+    #text_encoder=cpu_offload(text_encoder)
     
     trans_lora_config = LoraConfig(
         r=args.rank,
@@ -147,7 +148,7 @@ def main(args):
     
     optimizer=torch.optim.AdamW(params)
     
-    train_dataset,optimizer,scheduler,transformer=accelerator.prepare(train_dataset,optimizer,scheduler,transformer)
+    train_dataset,optimizer,scheduler,transformer,text_encoder,vae=accelerator.prepare(train_dataset,optimizer,scheduler,transformer,text_encoder,vae)
 
     start_epoch=1
     try:
@@ -225,12 +226,16 @@ def main(args):
                 text=batch["text"]
                 tokenized_text=batch["token"]['input_ids'].to(device)
                 encoder_attention_mask=batch["token"]["attention_mask"].to(device).float()
+                episode_index=batch["episode_index"]
                 
                 if e==start_epoch and b==0:
                     accelerator.print("video ",video.size(),video.dtype,video.device)
                 
                 latents=vae.encode(video).latent_dist.sample()
                 noise = torch.randn_like(latents)
+                for k,episode_i in enumerate(episode_index):
+                    if episode_i!=0:
+                        noise[:,:,k,:,:]=0.
                 
                 bsz = latents.shape[0]
                 # Sample a random timestep for each image
