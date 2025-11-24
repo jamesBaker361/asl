@@ -235,7 +235,7 @@ def main(args):
                 noise = torch.randn_like(latents)
                 for k,episode_i in enumerate(episode_index):
                     if episode_i!=0:
-                        noise[:,:,k,:,:]=0.
+                        noise[k,:,0,:,:]=0.
                 
                 bsz = latents.shape[0]
                 # Sample a random timestep for each image
