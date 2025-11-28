@@ -232,6 +232,7 @@ def main(args):
                 
                 if e==start_epoch and b==0:
                     accelerator.print("video ",video.size(),video.dtype,video.device)
+                    accelerator.print("text",tokenized_text.size(),tokenized_text.dtype,tokenized_text.device)
                 
                 latents=vae.encode(video).latent_dist.sample()
                 noise = torch.randn_like(latents)
@@ -278,7 +279,7 @@ def main(args):
                     if accelerator.sync_gradients:
                         accelerator.clip_grad_norm_(params, 1.0)
                     optimizer.step()
-                    accelerator.print("yay it worked ",text, noisy_latents.size())
+                    #accelerator.print("yay it worked ",text, noisy_latents.size())
                 except torch.OutOfMemoryError:
                     accelerator.print("error for ",text, noisy_latents.size())
                     oom_count+=1
