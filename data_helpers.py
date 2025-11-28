@@ -55,7 +55,7 @@ class VideoData(Dataset):
                 for cv2_image in segment:
                     cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
                     
-                    segment=[cv2_image[i] for i in range(k,k+4)]
+                    segment=np.array([cv2_image[i] for i in range(k,k+4)])
                     #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
                     tens=convert(segment,aspect_ratio)
                     tensor_list.append(tens)
