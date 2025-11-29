@@ -298,7 +298,10 @@ def main(args):
         })
         accelerator.print(f"epoch {e} elapsed {end-start}. {oom_count}/{b} skipped")
         
-        transformer.save_lora_weights(save_subdir,unet_lora_adapter_metadata={"epoch":e})
+        transformer.save_lora_adapter(save_subdir)
+        config_path=os.path.join(save_subdir,CONFIG_NAME)
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump({"epochs":e}, f, indent=4)   # indent is optional, just for readability
 
 
 if __name__=='__main__':
