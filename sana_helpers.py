@@ -29,7 +29,8 @@ from diffusers.video_processor import VideoProcessor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from dataclasses import dataclass
 
-from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler,BaseOutput
+from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler
+from diffusers.utils.outputs import BaseOutput
 
 
 ASPECT_RATIO_480_BIN = {
