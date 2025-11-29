@@ -27,11 +27,115 @@ from diffusers.utils import (
 from diffusers.utils.torch_utils import get_device, is_torch_version, randn_tensor
 from diffusers.video_processor import VideoProcessor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
-from diffusers.pipelines.sana_video.pipeline_output import SanaVideoPipelineOutput
-from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler
+from dataclasses import dataclass
+
+from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler,BaseOutput
+
+
+ASPECT_RATIO_480_BIN = {
+    "0.5": [448.0, 896.0],
+    "0.57": [480.0, 832.0],
+    "0.68": [528.0, 768.0],
+    "0.78": [560.0, 720.0],
+    "1.0": [624.0, 624.0],
+    "1.13": [672.0, 592.0],
+    "1.29": [720.0, 560.0],
+    "1.46": [768.0, 528.0],
+    "1.67": [816.0, 496.0],
+    "1.75": [832.0, 480.0],
+    "2.0": [896.0, 448.0],
+}
+
+
+ASPECT_RATIO_720_BIN = {
+    "0.5": [672.0, 1344.0],
+    "0.57": [704.0, 1280.0],
+    "0.68": [800.0, 1152.0],
+    "0.78": [832.0, 1088.0],
+    "1.0": [960.0, 960.0],
+    "1.13": [1024.0, 896.0],
+    "1.29": [1088.0, 832.0],
+    "1.46": [1152.0, 800.0],
+    "1.67": [1248.0, 736.0],
+    "1.75": [1280.0, 704.0],
+    "2.0": [1344.0, 672.0],
+}
+
+@dataclass
+class SanaVideoPipelineOutput(BaseOutput):
+    r"""
+    Output class for Sana-Video pipelines.
+
+    Args:
+        frames (`torch.Tensor`, `np.ndarray`, or List[List[PIL.Image.Image]]):
+            List of video outputs - It can be a nested list of length `batch_size,` with each sub-list containing
+            denoised PIL image sequences of length `num_frames.` It can also be a NumPy array or Torch tensor of shape
+            `(batch_size, num_frames, channels, height, width)`.
+    """
+
+    frames: torch.Tensor
+    
+def retrieve_timesteps(
+    scheduler,
+    num_inference_steps: Optional[int] = None,
+    device: Optional[Union[str, torch.device]] = None,
+    timesteps: Optional[List[int]] = None,
+    sigmas: Optional[List[float]] = None,
+    **kwargs,
+):
+    r"""
+    Calls the scheduler's `set_timesteps` method and retrieves timesteps from the scheduler after the call. Handles
+    custom timesteps. Any kwargs will be supplied to `scheduler.set_timesteps`.
+
+    Args:
+        scheduler (`SchedulerMixin`):
+            The scheduler to get timesteps from.
+        num_inference_steps (`int`):
+            The number of diffusion steps used when generating samples with a pre-trained model. If used, `timesteps`
+            must be `None`.
+        device (`str` or `torch.device`, *optional*):
+            The device to which the timesteps should be moved to. If `None`, the timesteps are not moved.
+        timesteps (`List[int]`, *optional*):
+            Custom timesteps used to override the timestep spacing strategy of the scheduler. If `timesteps` is passed,
+            `num_inference_steps` and `sigmas` must be `None`.
+        sigmas (`List[float]`, *optional*):
+            Custom sigmas used to override the timestep spacing strategy of the scheduler. If `sigmas` is passed,
+            `num_inference_steps` and `timesteps` must be `None`.
+
+    Returns:
+        `Tuple[torch.Tensor, int]`: A tuple where the first element is the timestep schedule from the scheduler and the
+        second element is the number of inference steps.
+    """
+    if timesteps is not None and sigmas is not None:
+        raise ValueError("Only one of `timesteps` or `sigmas` can be passed. Please choose one to set custom values")
+    if timesteps is not None:
+        accepts_timesteps = "timesteps" in set(inspect.signature(scheduler.set_timesteps).parameters.keys())
+        if not accepts_timesteps:
+            raise ValueError(
+                f"The current scheduler class {scheduler.__class__}'s `set_timesteps` does not support custom"
+                f" timestep schedules. Please check whether you are using the correct scheduler."
+            )
+        scheduler.set_timesteps(timesteps=timesteps, device=device, **kwargs)
+        timesteps = scheduler.timesteps
+        num_inference_steps = len(timesteps)
+    elif sigmas is not None:
+        accept_sigmas = "sigmas" in set(inspect.signature(scheduler.set_timesteps).parameters.keys())
+        if not accept_sigmas:
+            raise ValueError(
+                f"The current scheduler class {scheduler.__class__}'s `set_timesteps` does not support custom"
+                f" sigmas schedules. Please check whether you are using the correct scheduler."
+            )
+        scheduler.set_timesteps(sigmas=sigmas, device=device, **kwargs)
+        timesteps = scheduler.timesteps
+        num_inference_steps = len(timesteps)
+    else:
+        scheduler.set_timesteps(num_inference_steps, device=device, **kwargs)
+        timesteps = scheduler.timesteps
+    return timesteps, num_inference_steps
+
 
 @torch.no_grad()
-@replace_example_docstring(EXAMPLE_DOC_STRING)
+#@replace_example_docstring(EXAMPLE_DOC_STRING)
 def forward_asl(
     self:SanaVideoPipeline,
     frames_at_a_time:int =4,
@@ -317,8 +421,6 @@ def forward_asl(
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                     progress_bar.update()
 
-                if XLA_AVAILABLE:
-                    xm.mark_step()
             extracted_frame=min(f,frames_at_a_time-1)
             past_frames.append(latents[extracted_frame])
 
@@ -365,11 +467,12 @@ def forward_asl(
     return SanaVideoPipelineOutput(frames=video)
 
 if __name__=="__main__":
+    device="cuda"
     pipe=SanaVideoPipeline.from_pretrained("Efficient-Large-Model/SANA-Video_2B_480p_diffusers",device=device)
     prompt = "Evening, backlight, side lighting, soft light, high contrast, mid-shot, centered composition, clean solo shot, warm color. A young Caucasian man stands in a forest, golden light glimmers on his hair as sunlight filters through the leaves. He wears a light shirt, wind gently blowing his hair and collar, light dances across his face with his movements. The background is blurred, with dappled light and soft tree shadows in the distance. The camera focuses on his lifted gaze, clear and emotional."
     negative_prompt = "A chaotic sequence with misshapen, deformed limbs in heavy motion blur, sudden disappearance, jump cuts, jerky movements, rapid shot changes, frames out of sync, inconsistent character shapes, temporal artifacts, jitter, and ghosting effects, creating a disorienting visual experience."
-    motion_prompt = f" motion score: {model_score}."
-    prompt = prompt + motion_prompt
+
+    prompt = prompt
 
     video = forward_asl(
         pipe,
