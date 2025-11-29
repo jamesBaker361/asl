@@ -4,6 +4,7 @@ import re
 import urllib.parse as ul
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from diffusers.utils import export_to_video
 
 import torch
 from transformers import Gemma2PreTrainedModel, GemmaTokenizer, GemmaTokenizerFast
@@ -31,7 +32,7 @@ from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepSchedul
 
 @torch.no_grad()
 @replace_example_docstring(EXAMPLE_DOC_STRING)
-def __call__(
+def forward_asl(
     self:SanaVideoPipeline,
     frames_at_a_time:int =4,
     prompt: Union[str, List[str]] = None,
@@ -363,3 +364,24 @@ def __call__(
 
     return SanaVideoPipelineOutput(frames=video)
 
+if __name__=="__main__":
+    pipe=SanaVideoPipeline.from_pretrained("Efficient-Large-Model/SANA-Video_2B_480p_diffusers",device=device)
+    prompt = "Evening, backlight, side lighting, soft light, high contrast, mid-shot, centered composition, clean solo shot, warm color. A young Caucasian man stands in a forest, golden light glimmers on his hair as sunlight filters through the leaves. He wears a light shirt, wind gently blowing his hair and collar, light dances across his face with his movements. The background is blurred, with dappled light and soft tree shadows in the distance. The camera focuses on his lifted gaze, clear and emotional."
+    negative_prompt = "A chaotic sequence with misshapen, deformed limbs in heavy motion blur, sudden disappearance, jump cuts, jerky movements, rapid shot changes, frames out of sync, inconsistent character shapes, temporal artifacts, jitter, and ghosting effects, creating a disorienting visual experience."
+    motion_prompt = f" motion score: {model_score}."
+    prompt = prompt + motion_prompt
+
+    video = forward_asl(
+        pipe,
+        frames_at_a_time=3,
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        height=448,
+        width=896,
+        frames=81,
+        guidance_scale=6,
+        num_inference_steps=50,
+        generator=torch.Generator(device="cuda").manual_seed(42),
+    ).frames[0]
+
+    export_to_video(video, "sana_video_test.mp4", fps=16)
