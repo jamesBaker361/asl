@@ -297,6 +297,8 @@ def main(args):
             "train_loss":train_loss
         })
         accelerator.print(f"epoch {e} elapsed {end-start}. {oom_count}/{b} skipped")
+        
+        transformer.save_lora_weights(save_subdir,unet_lora_adapter_metadata={"epoch":e})
 
 
 if __name__=='__main__':
