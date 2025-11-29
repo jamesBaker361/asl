@@ -482,9 +482,9 @@ if __name__=="__main__":
         negative_prompt=negative_prompt,
         height=448,
         width=896,
-        frames=81,
+        frames=30,
         guidance_scale=6,
-        num_inference_steps=50,
+        num_inference_steps=5,
         generator=torch.Generator(device="cuda").manual_seed(42),
     ).frames[0]
 
