@@ -31,6 +31,7 @@ from dataclasses import dataclass
 
 from diffusers import SanaPipeline, SanaVideoPipeline, DPMSolverMultistepScheduler
 from diffusers.utils.outputs import BaseOutput
+from accelerate import Accelerator
 
 
 ASPECT_RATIO_480_BIN = {
@@ -468,8 +469,12 @@ def forward_asl(
     return SanaVideoPipelineOutput(frames=video)
 
 if __name__=="__main__":
-    device="cuda"
+    device=Accelerator().device
     pipe=SanaVideoPipeline.from_pretrained("Efficient-Large-Model/SANA-Video_2B_480p_diffusers",device=device)
+    pipe.transformer.to(device)
+    pipe.text_encoder.to(device)
+    pipe.vae.to(device)
+    #pipe.video_processor.to(device)
     prompt = "Evening, backlight, side lighting, soft light, high contrast, mid-shot, centered composition, clean solo shot, warm color. A young Caucasian man stands in a forest, golden light glimmers on his hair as sunlight filters through the leaves. He wears a light shirt, wind gently blowing his hair and collar, light dances across his face with his movements. The background is blurred, with dappled light and soft tree shadows in the distance. The camera focuses on his lifted gaze, clear and emotional."
     negative_prompt = "A chaotic sequence with misshapen, deformed limbs in heavy motion blur, sudden disappearance, jump cuts, jerky movements, rapid shot changes, frames out of sync, inconsistent character shapes, temporal artifacts, jitter, and ghosting effects, creating a disorienting visual experience."
 
