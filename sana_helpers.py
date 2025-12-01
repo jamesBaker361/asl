@@ -373,8 +373,9 @@ def forward_asl(
             if f==0:
                 print("latents ",latents.size())
             else:
+                print(" torch.cat(past_frames[-f:]) ",torch.cat(past_frames[-f:]).size())
                 if f<frames_at_a_time:
-                    latents[:,:,:f,:,:]=past_frames[-f:]
+                    latents[:,:,:f,:,:]=torch.cat(past_frames[-f:])
                 else:
                     latents[:,:,:frames_at_a_time-1,:,:]=past_frames[-frames_at_a_time:]
             for i, t in enumerate(timesteps):
