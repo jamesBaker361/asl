@@ -490,7 +490,7 @@ if __name__=="__main__":
         width=896,
         frames=30,
         guidance_scale=6,
-        num_inference_steps=5,
+        num_inference_steps=10,
         generator=torch.Generator(device="cuda").manual_seed(42),
     ).frames[0]
 
