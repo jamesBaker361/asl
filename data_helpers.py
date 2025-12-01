@@ -49,13 +49,13 @@ class VideoData(Dataset):
         self.episode_index=[]
         self.episode_length=[]
         for cv2_image_list,text in zip(dataset["video_cv2"],dataset["label"]):
-            for k in range(len(cv2_image_list)-4):
-                segment=cv2_image_list[k:k+4]
+            for k in range(len(cv2_image_list)-frames):
+                segment=cv2_image_list[k:k+frames]
                 tensor_list=[]
                 for cv2_image in segment:
                     cv2_image=np.asarray(cv2_image).astype(np.float32)/255.0
                     
-                    segment=np.array([cv2_image[i] for i in range(k,k+4)])
+                    segment=np.array([cv2_image[i] for i in range(k,k+frames)])
                     #print(cv2_image.shape,cv2_image.size,cv2_image.max(),cv2_image.min(),cv2_image.dtype)
                     tens=convert(segment,aspect_ratio)
                     tensor_list.append(tens)
